@@ -4,8 +4,9 @@ Simulateur du système UDG: thurnabilité
 import math
 from random import random
 from base import Strategy, Simulation
-from decorators import dataclass
+from dataclasses import dataclass
 from typing import Callable
+from pprint import pprint
 
 def fract(x):
     return math.modf(x)[0]
@@ -64,7 +65,7 @@ class UDG(Simulation):
         self.al = self.evaluate_al(new_ctx)
 
         if al_n is not None:
-            for id_, U in self.memory:
+            for id_, U in self.memory.items():
                 self.memory[id_] = U*(self.al/al_n) # Actualisation.
 
     def get_u(self, person):
@@ -94,7 +95,8 @@ class UDG(Simulation):
         if person.id not in self.memory:
             self.memory[person.id] = self.al
 
-        new_balance = self.memory[person.id] - amount
+        cur_balance = self.memory[person.id]
+        new_balance = cur_balance - amount if not math.isclose(cur_balance, amount) else 0  # Thanks, IEE754.
         assert new_balance >= 0, "A player cannot play more than its available UDG."
         # Just in case, we allow negative balances in the future.
         self.memory[person.id] = max(0, new_balance)
@@ -122,11 +124,14 @@ class UDG(Simulation):
         assert len(chosen) <= objective, f"Something went wrong: the set of normaliens who played ≥ 1UDG is larger than the objective, violation of 1UDG = 1 thurne guarantee"
 
         battle.sort(key=lambda i: i[0], reverse=True) # Sort by decreasing values.
-        remaining = objective - len(chosen)
+        remaining = min(objective - len(chosen), len(battle))
         for _, person in battle[:remaining]:
+            played = probas[person.id]
             self.receive_payment(person, played)
             person.thurne = True
 
         result = [{'probability': 1, 'person': person, 'thurne': person.thurne} for person in chosen] + [
                 {'probability': probas[person.id], 'person': person, 'thurne': person.thurne} for _, person in battle]
+
+        #pprint(result)
         return result # Le résultat.
