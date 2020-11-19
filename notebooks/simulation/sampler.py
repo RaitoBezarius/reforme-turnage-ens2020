@@ -1,6 +1,6 @@
 import bisect
 import random
-from base import Normalien, Context, Simulation
+from .base import Normalien, Context, Simulation
 from typing import List, Optional, NewType
 from collections import defaultdict
 from enum import IntEnum
@@ -165,12 +165,17 @@ class Simulator:
         print(f'\t\tTotal normaliens: {len(people)}\n\t\tTotal thurnes: {context.nb_thurnes}\n\t\tEspérance: {round(esperance, 2)}\n\t\tPersonnes thurnés: {obtenu}')
 
 
-    def run(self, contexts=None, peoples=None):
+    def prepare(self, data) -> List[Normalien]:
+        # It will return a set of people.
+        return self.s.generate_using_transition(data)
+
+    def run(self, contexts=None, peoples=None, print_evaluation=True):
         if contexts is None:
             contexts = self.generate_contexts() # Sample contexts.
         if peoples is None:
             peoples = [None] * len(contexts)
 
+        results = []
         for index, context in enumerate(contexts):
             if index > 0:
                 # ensure organic generation.
@@ -185,9 +190,12 @@ class Simulator:
             self.s.update(context)
             result = self.s.simulate(context, p)
             thurne = [r for r in result if r['thurne']]
-            print(f'\n\tAnnée {index + 1}')
+            if print_evaluation:
+                print(f'\n\tAnnée {index + 1}')
             assert len(thurne) <= context.nb_thurnes, f"Violation de la loi de la conservation de thurnes, plus de thurnes attribué ({len(thurne)}) que physiquement disponible ({context.nb_thurnes})!"
-            self.evaluate_result(result, context, p)
+            if print_evaluation:
+                self.evaluate_result(result, context, p)
+            results.append({'context': context, 'result': result, 'people': p})
             # Réinitialisation de la thurnabilité.
             for q in p:
                 q.thurne = False
@@ -196,3 +204,4 @@ class Simulator:
         # On regarde maintenant la variable A_id qui donne le nombre d'années logés à l'ENS.
         # Sur un échantillon représentatif, est ce que 1/N (sum_i A_i) ~ E(A) ~ objectif.
         # objectif \in {1.5, 2, 3}.
+        return results

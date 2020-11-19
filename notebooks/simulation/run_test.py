@@ -15,4 +15,19 @@ simulator = Simulator(
         UDG(UDGConfiguration(identifier=VARIANT_NONUNIFORM, function=lambda x: 100*x)),
         scenario)
 
-simulator.run()
+def extract_kpi(raw_simulation_result):
+    cats = ["A", "B", "C"]
+    kpis = {}
+    for c in cats:
+        individuals = [i for i in raw_simulation_result if i['cat'] == c]
+        c_loge = sum(1 for individual in individuals if individual['thurne'])
+        kpis[f"{c}_total"] = len(individuals)
+        kpis[f"{c}_logé"] = c_loge
+
+    return kpis
+
+raw_results = simulator.run()
+
+kpis = []
+for rr in raw_results:
+    kpis.append(extract_kpi(rr["result"]))
