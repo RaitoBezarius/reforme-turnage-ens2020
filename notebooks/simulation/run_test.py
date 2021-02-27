@@ -1,18 +1,18 @@
-from udg import UDG, UDGConfiguration, VARIANT_NONUNIFORM
+from udg import UDG, UDGConfiguration, VARIANT_NONUNIFORM, VARIANT_RANDOM_CATEGORIES
 from sampler import Simulator, ScenarioEvent, Scenario
 
 # Scénario de grosse décroissance avant recroissance plus tard.
 scenario = Scenario([
-        ScenarioEvent.SUPER_DECREASING,  # TG21.
-        ScenarioEvent.STABLE, # TG22
-        ScenarioEvent.INCREASING, # TG23
+        ScenarioEvent.INCREASING,  # TG21.
+        ScenarioEvent.SUPER_DECREASING, # TG22
+        ScenarioEvent.STABLE, # TG23
         ScenarioEvent.INCREASING, # TG24
-        ScenarioEvent.STABLE, # TG25
+        ScenarioEvent.INCREASING, # TG25
         ScenarioEvent.STABLE # TG26
         ])
 # Tel que décrit par Milton.
 simulator = Simulator(
-        UDG(UDGConfiguration(identifier=VARIANT_NONUNIFORM, function=lambda x: 100*x)),
+        UDG(UDGConfiguration(identifier=VARIANT_RANDOM_CATEGORIES, function=lambda x: 100*x)),
         scenario)
 
 def extract_kpi(raw_simulation_result):

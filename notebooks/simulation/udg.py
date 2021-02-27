@@ -3,7 +3,7 @@ Simulateur du système UDG: thurnabilité
 """
 import math
 import random
-from .base import Strategy, Simulation, Normalien
+from base import Strategy, Simulation, Normalien
 from dataclasses import dataclass
 from typing import Callable
 from pprint import pprint
@@ -66,7 +66,7 @@ class UDG(Simulation):
 
         assert self.al is not None, "Le système n'a pas d'UDG calculé au préalable, impossible de convertir qui que ce soit."
 
-        self.memory[nouveau.id] = max(0, self.al - normalien.metadata['al']) # Principe de transition d'après Milton.
+        self.memory[normalien.id] = max(0, self.al - normalien.metadata['al']) # Principe de transition d'après Milton.
 
     def update(self, new_ctx):
         if self.al is not None:
@@ -89,7 +89,15 @@ class UDG(Simulation):
             f = self.config.function
             return min(f(RANDOM_THRESHOLD), f(fract(play_value)) + f(fract(round(numpy.random.exponential(EXP_RANDOM_PARAM), MAX_RANDOMNESS_SIZE)))) # Variante probabiliste non-uniforme.
         elif self.config.identifier == VARIANT_RANDOM_CATEGORIES:
-            raise NotImplementedError # TODO
+            # On fait un défi: on a donc joué une probabilité, UDG.
+            # On jette un dé 100, si on est en dessous, on gagne.
+            # Si on est au dessus, on perd.
+            # Pour écrire ça, on dit juste que si on gagne, on a 1 + la probabilité.
+            # Sinon, la probabilité.
+            if numpy.random.uniform() <= play_value:
+                return 1 + play_value # Catégorie argent.
+            else:
+                return play_value # Catégorie bronze.
         else:
             raise ValueError("No such variant for play value adjustment")
 
@@ -102,7 +110,7 @@ class UDG(Simulation):
 
     def available_playable_choices(self, person):
         balance = self.get_u(person)
-        return {0, fract(balance), int(balance), balance} # Available choices are: 0, {α}, α - {α}, α for α the balance.
+        return {0, balance/3, balance/2, fract(balance), int(balance), balance} # Available choices are: 0, {α}, α - {α}, α for α the balance.
 
     def receive_payment(self, person, amount):
         if person.id not in self.memory:

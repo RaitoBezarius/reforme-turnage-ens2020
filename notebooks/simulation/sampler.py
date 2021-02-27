@@ -1,6 +1,6 @@
 import bisect
 import random
-from .base import Normalien, Context, Simulation
+from base import Normalien, Context, Simulation
 from typing import List, Optional, NewType
 from collections import defaultdict
 from enum import IntEnum
@@ -115,7 +115,7 @@ class Simulator:
         ids = sorted([p.id for p in previous_generation]) if previous_generation else []
 
         for statut, size in POPULATION_SIZE_BY_STATUT.items():
-            for _ in range(size//2): # FIXME: Bouh, c'est moche, que faire?
+            for _ in range(size): # FIXME: Bouh, c'est moche, que faire?
                 new_id = mex(ids) # linear.
                 n = Normalien(new_id,
                         random.choice(self.s.strategies)(),
