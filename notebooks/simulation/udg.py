@@ -68,6 +68,8 @@ class UDG(Simulation):
 
         self.memory[normalien.id] = max(0, self.al - normalien.metadata['al']) # Principe de transition d'après Milton.
 
+        return normalien
+
     def update(self, new_ctx):
         if self.al is not None:
             al_n = self.al
@@ -132,7 +134,7 @@ class UDG(Simulation):
 
         for person in people:
             played = person.play_strategy(al=self.get_u(person), ctx=context) # UDG amount played.
-            assert (played in self.available_playable_choices(person)), f"A player has played a non-accepted amount: {played} (UDG: {self.get_u(person)}), strategy constraint violation"
+            assert (played in self.available_playable_choices(person)), f"A player ({person.id}, {person.year}A) has played a non-accepted amount: {played} (UDG: {self.get_u(person)}), strategy constraint violation"
             probas[person.id] = played
             if played >= 1:
                 chosen.append(person)
@@ -165,8 +167,8 @@ class UDG(Simulation):
 
 
         result = (
-                [{'probability': 1, 'person': person, 'thurne': person.thurne, 'cat': 'A'} for person in chosen]
-                + [{'probability': probas[person.id], 'person': person, 'thurne': person.thurne, 'cat': 'B'} for _, person in battle]
-                + [{'probability': 0, 'person': person, 'thurne': person.thurne, 'cat': 'C'} for person in played_nothing])
+                [{'probability': 1, 'person': person, 'thurne': person.thurne, 'cat': 'A', 'ranking': i} for i, person in enumerate(chosen)]
+                + [{'probability': probas[person.id], 'person': person, 'thurne': person.thurne, 'cat': 'B', 'ranking': i + len(chosen)} for i, (_, person) in enumerate(battle)]
+                + [{'probability': 0, 'person': person, 'thurne': person.thurne, 'cat': 'C', 'ranking': i + len(chosen) + len(battle)} for i, person in enumerate(played_nothing)])
 
         return result # Le résultat.

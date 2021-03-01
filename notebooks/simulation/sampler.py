@@ -62,7 +62,7 @@ def imagine_context(prev_ctx: Context, event: ScenarioEvent) -> Context:
 class Simulator:
     def __init__(self,
             simulation: Simulation,
-            scenario: Scenario,
+            scenario: Optional[Scenario] = None,
             initial_context: Optional[Context] = None):
         self.s = simulation
         self.scenario = scenario
@@ -72,10 +72,13 @@ class Simulator:
                 future=None,
                 past=None)
 
-    def generate_contexts(self, n: int = 5) -> List[Context]:
+    def generate_contexts(self, n: int = 15) -> List[Context]:
         # Il faut sampler un ensemble de N contextes.
         # Notamment pour backfiller les contextes futurs et passés.
         contexts = [self.initial_ctx] * n
+
+        if not self.scenario and n > 1:
+            raise ValueError("Aucun scénario afin de générer le reste des contextes!")
 
         for i in range(1, n):
             # Comment prévoir des évolutions?
@@ -115,8 +118,8 @@ class Simulator:
         ids = sorted([p.id for p in previous_generation]) if previous_generation else []
 
         for statut, size in POPULATION_SIZE_BY_STATUT.items():
-            for _ in range(size): # FIXME: Bouh, c'est moche, que faire?
-                new_id = mex(ids) # linear.
+            for _ in range(size//2): # FIXME: Bouh, c'est moche, que faire?
+                new_id = max(ids) + 1 if ids else 1 # linear.
                 n = Normalien(new_id,
                         random.choice(self.s.strategies)(),
                         statut=statut)
@@ -164,10 +167,6 @@ class Simulator:
 
         print(f'\t\tTotal normaliens: {len(people)}\n\t\tTotal thurnes: {context.nb_thurnes}\n\t\tEspérance: {round(esperance, 2)}\n\t\tPersonnes thurnés: {obtenu}')
 
-
-    def prepare(self, data) -> List[Normalien]:
-        # It will return a set of people.
-        return self.s.generate_using_transition(data)
 
     def run(self, contexts=None, peoples=None, print_evaluation=True):
         if contexts is None:

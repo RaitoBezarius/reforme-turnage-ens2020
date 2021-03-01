@@ -9,7 +9,7 @@ scenario = Scenario([
         ScenarioEvent.INCREASING, # TG24
         ScenarioEvent.INCREASING, # TG25
         ScenarioEvent.STABLE # TG26
-        ])
+        ] + [ScenarioEvent.STABLE] * 10)
 # Tel que décrit par Milton.
 simulator = Simulator(
         UDG(UDGConfiguration(identifier=VARIANT_RANDOM_CATEGORIES, function=lambda x: 100*x)),
