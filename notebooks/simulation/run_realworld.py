@@ -5,6 +5,7 @@ from udg import UDG, UDGConfiguration, VARIANT_NONUNIFORM, VARIANT_RANDOM_CATEGO
 from base import Normalien, Context, Strategy
 from sampler import ScenarioEvent, Scenario, DEFAULT_PROMO_SIZE
 from realworld import RealWorldSimulator
+from math import isclose
 from typing import List
 import matplotlib.pyplot as plt
 
@@ -17,11 +18,9 @@ class TransitionStrategy(Strategy):
         if self.jokers >= 2:
             will = 1
         elif self.jokers == 1:
-            will = 1
-        elif self.jokers == 1:
             will = al/2
         elif self.jokers == 0:
-           will = al/3
+            will = al/3
 
         if self.strict:
             return will
@@ -103,7 +102,7 @@ def volatility_for_a_person(personal_results):
     # deviation de la probabilité empirique avec la probabilité moyenne.
     return avg_p, empirical_p
 
-def evaluate_volatility(runs: int = 5_000):
+def evaluate_volatility(runs: int = 5_000, ignore_sure_result: bool = False):
     results_per_id_and_year = defaultdict(list)
     year = 0
     for i in range(runs):
@@ -116,12 +115,15 @@ def evaluate_volatility(runs: int = 5_000):
     devs = defaultdict(list)
     for (_, year), rr in results_per_id_and_year.items():
         avg_p, emp_p = volatility_for_a_person(rr)
+        if all(result['probability'] >= 1 for result in rr) and ignore_sure_result:
+            print('Sure result ignored.')
+            continue
         devs[year].append(abs(avg_p - emp_p))
 
     return pd.concat({2016 + k: pd.Series(v) for k, v in devs.items()})
 
 
-def run_simulation(ctxs, peoples, print_evaluation = True):
+def run_simulation(ctxs=past_contexts, peoples=past_peoples, print_evaluation = True):
     # Tel que décrit par Milton.
     simulator = RealWorldSimulator(
             UDG(UDGConfiguration(identifier=VARIANT_RANDOM_CATEGORIES, function=None)))
